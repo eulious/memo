@@ -1,100 +1,49 @@
-/** @jsxImportSource @emotion/react */
-import { MouseEvent, useEffect, useState } from 'react';
-import { invoke } from './Common';
-import { css } from '@emotion/react'
+import { createSignal, onMount } from "solid-js";
+import { ChangeEvent, invoke } from "./Common";
 
 interface SnippetProps {
-    setMode: Function
+  setMode: Function;
 }
 export default function Snippet(props: SnippetProps) {
-    const [texts, setTexts] = useState(Array(10).fill("aaaaaaaa\n\naaaa\naaaa\n\n\naaaaa\naaaaaa"));
+  const [texts, setTexts] = createSignal(Array(10).fill("aaaaaaaa\n\naaaa\naaaa\n\n\naaaaa\naaaaaa"));
 
-    (window as any).add = (s: string) => {
-        setTexts([...texts, s])
-        invoke.write({
-            filename: "snippet.json",
-            text: JSON.stringify([...texts, s], null, 2)
-        })
-    }
+  (window as any).add = (s: string) => {
+    setTexts([...texts(), s]);
+    invoke.write({
+      filename: "snippet.json",
+      text: JSON.stringify([...texts(), s], null, 2)
+    });
+  };
 
-    const row: JSX.Element[] = []
-    let domm: JSX.Element[] = []
-    texts.forEach((s, i) => {
-        domm.push(
-            <td key={i}>
-                <textarea
-                    css={style.textarea}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    value={s}
-                    readOnly={true}
-                    onClick={onClick} />
-            </td>
-        )
-        if (i % 4 == 3 || i == texts.length - 1) {
-            row.push(<tr key={i} >{domm}</tr>)
-            domm = [];
-        }
-    })
+  onMount(() => {
+    invoke.read({ filename: "snippet.json" }).then(res => {
+      setTexts(res);
+    });
+  });
 
-    useEffect(() => {
-        invoke.read({ filename: "snippet.json" }).then(res => {
-            setTexts(res)
-        })
-    }, [])
+  async function onClick(e: ChangeEvent<HTMLTextAreaElement>) {
+    document!.getSelection()!.selectAllChildren(e.currentTarget);
+    navigator.clipboard.writeText(e.currentTarget.value);
+    await new Promise(s => setTimeout(s, 100));
+    props.setMode("memo");
+  }
 
-    async function onClick(e: MouseEvent<HTMLTextAreaElement>) {
-        document!.getSelection()!.selectAllChildren(e.currentTarget);
-        navigator.clipboard.writeText(e.currentTarget.value)
-        await new Promise(s => setTimeout(s, 100))
-        props.setMode("memo")
-    }
-
-    return (
-        <div css={style.wrapper}>
-            <table css={style.table}>
-                <tbody>
-                    {row}
-                </tbody>
-            </table>
+  return (
+    <div class="h-full w-full grid grid-cols-4 gap-2 p-2">
+      {texts().map(s => (
+        <div>
+          <textarea
+            style={{ outline: "solid 1px rgb(198, 198, 198)" }}
+            class="scrollbar w-full block h-32 resize-none border-black border-1 text-gray-700 text-lg"
+            autocomplete="off"
+            // autocorrect="off"
+            spellcheck={false}
+            value={s}
+            readOnly={true}
+            onClick={onClick}
+          />
         </div>
-    )
-}
-
-
-const style = {
-    wrapper: css({
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexWrap: "wrap"
-    }),
-
-    table: css({
-        tableLayout: "fixed",
-    }),
-
-    textarea: css({
-        display: "block",
-        width: "24vw",
-        height: "10vh",
-        resize: "none",
-        border: "solid 1px rgb(198, 198, 198)",
-        color: "rgb(55, 55, 55)",
-        fontSize: "large",
-
-        "&:focus": {
-            outline: "solid 1px rgb(198, 198, 198)",
-        },
-
-        "&::-webkit-scrollbar": {
-            width: "10px",
-        },
-
-        "&::-webkit-scrollbar-thumb": {
-            borderRadius: "10px",
-            background: "rgb(200, 200, 200)"
-        }
-    })
+      ))}
+    </div>
+  );
 }

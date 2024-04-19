@@ -1,91 +1,59 @@
-/** @jsxImportSource @emotion/react */
-import { ChangeEvent, MouseEvent, useState } from 'react';
-import { css } from '@emotion/react'
+import { createSignal } from "solid-js";
+import { ChangeEvent } from "./Common";
 
 export default function Hankaku() {
-    const [value, setValue] = useState("")
+  const [value, setValue] = createSignal("");
 
-    function onChange(e: ChangeEvent<HTMLTextAreaElement>) {
-        setValue(e.target.value)
-    }
+  function onChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setValue(e.currentTarget.value);
+  }
 
-    function eisu(text: string) {
-        return text.replace(/[A-Za-z0-9]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0))
-    }
+  function eisu(text: string) {
+    return text.replace(/[A-Za-z0-9]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xfee0));
+  }
 
-    function katakana(text: string) {
-        return text
-            .replace(reg, match => (kanaMap as any)[match])
-            .replace(/゛/g, 'ﾞ')
-            .replace(/゜/g, 'ﾟ');
-    }
+  function katakana(text: string) {
+    return text
+      .replace(reg, match => (kanaMap as any)[match])
+      .replace(/゛/g, "ﾞ")
+      .replace(/゜/g, "ﾟ");
+  }
 
-    function onClick(e: MouseEvent<HTMLTextAreaElement>) {
-        document!.getSelection()!.selectAllChildren(e.currentTarget);
-        navigator.clipboard.writeText(katakana(eisu(e.currentTarget.value)))
-    }
+  function onClick(e: ChangeEvent<HTMLTextAreaElement>) {
+    document!.getSelection()!.selectAllChildren(e.currentTarget);
+    navigator.clipboard.writeText(katakana(eisu(e.currentTarget.value)));
+  }
+  const className =
+    "scrollbar w-2/3 h-32 rounded-md resize-none border-gray-300 text-gray-700 text-lg outline-gray-300 border";
 
-    return (
-        <div css={style.wrapper}>
-            <div css={style.container}>
-                <textarea
-                    css={style.textarea}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    value={value}
-                    onChange={onChange} />
-            </div>
-            <div css={style.container}>
-                <textarea
-                    css={style.textarea}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    readOnly={true}
-                    onClick={onClick}
-                    value={katakana(eisu(value))} />
-            </div>
-        </div>
-    )
+  return (
+    <div class="h-full w-full">
+      <div class="pt-10 pl-8">
+        <textarea
+          class={className}
+          autocomplete="off"
+          spellcheck={false}
+          // autocorrect="off"
+          value={value()}
+          oninput={onChange}
+        />
+      </div>
+      <div class="pt-10 pl-8">
+        <textarea
+          class={className}
+          autocomplete="off"
+          spellcheck={false}
+          // autoCorrect="off"
+          readOnly={true}
+          onClick={onClick}
+          value={katakana(eisu(value()))}
+        />
+      </div>
+    </div>
+  );
 }
 
-
-const style = {
-    wrapper: css({
-        height: "100%",
-        width: "100%"
-    }),
-
-    textarea: css({
-        width: "60vw",
-        height: "10vh",
-        resize: "none",
-        border: "solid 1px rgb(198, 198, 198)",
-        color: "rgb(55, 55, 55)",
-        fontSize: "large",
-
-        "&:focus": {
-            outline: "solid 1px rgb(198, 198, 198)",
-        },
-
-        "&::-webkit-scrollbar": {
-            width: "10px",
-        },
-
-        "&::-webkit-scrollbar-thumb": {
-            borderRadius: "10px",
-            background: "rgb(200, 200, 200)"
-        }
-    }),
-
-    container: css({
-        paddingTop: "40px",
-        paddingLeft: "30px"
-    })
-}
-
-
+// prettier-ignore
 const kanaMap = {
     "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
     "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
@@ -107,4 +75,4 @@ const kanaMap = {
     "ッ": "ｯ", "ャ": "ｬ", "ュ": "ｭ", "ョ": "ｮ",
     "。": "｡", "、": "､", "ー": "ｰ", "「": "｢", "」": "｣", "・": "･"
 }
-const reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
+const reg = new RegExp("(" + Object.keys(kanaMap).join("|") + ")", "g");

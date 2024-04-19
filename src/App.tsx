@@ -1,41 +1,38 @@
-/** @jsxImportSource @emotion/react */
-import { css } from '@emotion/react'
-import { ChangeEvent, useState } from 'react'
-import Hankaku from './Hankaku'
-import Memo from './Memo'
-import Snippet from './Snippet'
+import { Match, Switch, createSignal } from "solid-js";
+import { ChangeEvent } from "./Common";
+import Hankaku from "./Hankaku";
+import Snippet from "./Snippet";
+import Memo from "./Memo";
 
 export default function App() {
-    const [mode, setMode] = useState("snippet")
+  const [mode, setMode] = createSignal("snippet");
 
-    function onChange(e: ChangeEvent<HTMLSelectElement>) {
-        setMode(e.target.value)
-    }
+  function onChange(e: ChangeEvent<HTMLSelectElement>) {
+    setMode(e.currentTarget.value);
+  }
 
-    return (
-        <div>
-            <select
-                value={mode}
-                css={style.select}
-                onChange={onChange}>
-                <option value="memo"></option>
-                <option value="hankaku"></option>
-                <option value="snippet"></option>
-            </select>
-            {mode === "memo" && <Memo />}
-            {mode === "hankaku" && <Hankaku />}
-            {mode === "snippet" && <Snippet setMode={setMode} />}
-        </div>
-    )
-}
-
-const style = {
-    select: css({
-        position: "absolute",
-        background: "transparent",
-        border: "transparent 0px inset",
-        height: "20px",
-        width: "50px",
-        color: "transparent"
-    }),
+  return (
+    <div>
+      <select
+        value={mode()}
+        class="absolute bg-transparent h-5 w-12"
+        onChange={onChange}
+      >
+        <option value="memo"></option>
+        <option value="hankaku"></option>
+        <option value="snippet"></option>
+      </select>
+      <Switch>
+        <Match when={mode() === "memo"}>
+          <Memo />
+        </Match>
+        <Match when={mode() === "hankaku"}>
+          <Hankaku />
+        </Match>
+        <Match when={mode() === "snippet"}>
+          <Snippet setMode={setMode} />
+        </Match>
+      </Switch>
+    </div>
+  );
 }
